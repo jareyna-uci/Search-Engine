@@ -17,6 +17,7 @@ def extract_next_links(url, resp):
     #         resp.raw_response.content: the content of the page!
     # Return a list with the hyperlinks (as strings) scrapped from resp.raw_response.content
 
+    num_unique_link = 0 # To count number of unique links
     url_list = list() #List with hyperlink to return
     soup = BeautifulSoup(resp.raw_response.content, 'html.parser') #parser using beautiful soup
     for link in soup.find_all('a'):
