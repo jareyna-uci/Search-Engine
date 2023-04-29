@@ -2,6 +2,14 @@ import re
 from urllib.parse import urlparse
 from bs4 import BeautifulSoup
 
+ics_disallow = r"^/bin/.*|^/~mpufal/.*"
+cs_disallow = r"^/wp-admin/.*"
+stat_disallow = r"^/wp-admin/.*"
+informatics_disallow = r"^/wp-admin/.*|^/research/.*"
+informatics_allow = (r"^/wp-admin/admin-ajax.php|^/research/labs-centers/.*|^/research/areas-of-expertise/.*"
+                    r"^/research/example-research-projects/.*|^/research/phd-research/.*|^/research/past-dissertations/.*"
+                    r"^/research/masters-research/.*|^/research/undergraduate-research/.*|^/research/gifts-grants/.*")
+
 def scraper(url, resp):
     links = extract_next_links(url, resp)
     return [link for link in links if is_valid(link)]
@@ -19,12 +27,15 @@ def extract_next_links(url, resp):
 
     num_unique_link = 0 # To count number of unique links
     url_list = list() #List with hyperlink to return
-    soup = BeautifulSoup(resp.raw_response.content, 'html.parser') #parser using beautiful soup
-    for link in soup.find_all('a'):
-        if 200 <= resp.status < 300 == True: #if status code is ok
+
+    if 200 <= resp.status < 300 : #if status code is ok and it is a valid link
+        soup = BeautifulSoup(resp.raw_response.content, 'lxml') #parser using beautiful soup
+        for link in soup.find_all('a'):
             extracted_url = link.get('href')
-            url_remove_fragment = "#".join(extracted_url.split('#')[:-1]) #removes the fragment portion of url
-            url_list.append(url_remove_fragment ) #adds url to list
+            index = extracted_url.rfind('#')
+            url_remove_fragment = extracted_url[:index] if index >= 0 else extracted_url #removes the fragment portion of url
+            url_list.append(url_remove_fragment) #adds url to list
+
     return url_list
     #return list()
 
@@ -36,16 +47,35 @@ def is_valid(url):
         parsed = urlparse(url)
         if parsed.scheme not in set(["http", "https"]):
             return False
-        return not re.match(
-            r".*\.(css|js|bmp|gif|jpe?g|ico"
-            + r"|png|tiff?|mid|mp2|mp3|mp4"
-            + r"|wav|avi|mov|mpeg|ram|m4v|mkv|ogg|ogv|pdf"
-            + r"|ps|eps|tex|ppt|pptx|doc|docx|xls|xlsx|names"
-            + r"|data|dat|exe|bz2|tar|msi|bin|7z|psd|dmg|iso"
-            + r"|epub|dll|cnf|tgz|sha1"
-            + r"|thmx|mso|arff|rtf|jar|csv"
-            + r"|rm|smil|wmv|swf|wma|zip|rar|gz)$", parsed.path.lower())
-
+        if check_robots(parsed):
+            return not re.match(
+                r".*\.(css|js|bmp|gif|jpe?g|ico"
+                + r"|png|tiff?|mid|mp2|mp3|mp4"
+                + r"|wav|avi|mov|mpeg|ram|m4v|mkv|ogg|ogv|pdf"
+                + r"|ps|eps|tex|ppt|pptx|doc|docx|xls|xlsx|names"
+                + r"|data|dat|exe|bz2|tar|msi|bin|7z|psd|dmg|iso"
+                + r"|epub|dll|cnf|tgz|sha1"
+                + r"|thmx|mso|arff|rtf|jar|csv"
+                + r"|rm|smil|wmv|swf|wma|zip|rar|gz)$", parsed.path.lower())
+        else:
+            return False
     except TypeError:
         print ("TypeError for ", parsed)
         raise
+
+def check_robots(url):
+    # checks if the url is under one of the four domains and is disallowed by their robots.txt
+
+    netloc = url.netloc.lower()
+    path = url.path.lower()
+
+    if re.match(r".*.ics.uci.edu.*", netloc):
+        return not re.match(ics_disallow, path)
+    if re.match(r".*.cs.uci.edu.*", netloc):
+        return re.match(r"^/wp-admin/admin-ajax.php", path) or not re.match(cs_disallow, path) 
+    if re.match(r".*.stat.uci.edu.*", netloc):
+        return re.match(r"^/wp-admin/admin-ajax.php", path) or not re.match(stat_disallow, path)
+    if re.match(r".*.informatics.uci.edu.*", netloc):
+        return re.match(informatics_allow, path) or not re.match(informatics_disallow, path)
+    return False
+
