@@ -2,13 +2,14 @@ import re
 from urllib.parse import urlparse
 from bs4 import BeautifulSoup
 
-ics_disallow = r"^/bin/.*|^/~mpufal/.*"
-cs_disallow = r"^/wp-admin/.*"
-stat_disallow = r"^/wp-admin/.*"
-informatics_disallow = r"^/wp-admin/.*|^/research/.*"
-informatics_allow = (r"^/wp-admin/admin-ajax.php|^/research/labs-centers/.*|^/research/areas-of-expertise/.*"
-                    r"^/research/example-research-projects/.*|^/research/phd-research/.*|^/research/past-dissertations/.*"
-                    r"^/research/masters-research/.*|^/research/undergraduate-research/.*|^/research/gifts-grants/.*")
+class Robots:
+    ics_disallow = r"^/bin/.*|^/~mpufal/.*"
+    cs_disallow = r"^/wp-admin/.*"
+    stat_disallow = r"^/wp-admin/.*"
+    informatics_disallow = r"^/wp-admin/.*|^/research/.*"
+    informatics_allow = (r"^/wp-admin/admin-ajax.php|^/research/labs-centers/.*|^/research/areas-of-expertise/.*"
+                        r"^/research/example-research-projects/.*|^/research/phd-research/.*|^/research/past-dissertations/.*"
+                        r"^/research/masters-research/.*|^/research/undergraduate-research/.*|^/research/gifts-grants/.*")
 
 def scraper(url, resp):
     links = extract_next_links(url, resp)
@@ -70,12 +71,12 @@ def check_robots(url):
     path = url.path.lower()
 
     if re.match(r".*.ics.uci.edu.*", netloc):
-        return not re.match(ics_disallow, path)
+        return not re.match(Robots.ics_disallow, path)
     if re.match(r".*.cs.uci.edu.*", netloc):
-        return re.match(r"^/wp-admin/admin-ajax.php", path) or not re.match(cs_disallow, path) 
+        return re.match(r"^/wp-admin/admin-ajax.php", path) or not re.match(Robots.cs_disallow, path) 
     if re.match(r".*.stat.uci.edu.*", netloc):
-        return re.match(r"^/wp-admin/admin-ajax.php", path) or not re.match(stat_disallow, path)
+        return re.match(r"^/wp-admin/admin-ajax.php", path) or not re.match(Robots.stat_disallow, path)
     if re.match(r".*.informatics.uci.edu.*", netloc):
-        return re.match(informatics_allow, path) or not re.match(informatics_disallow, path)
+        return re.match(Robots.informatics_allow, path) or not re.match(Robots.informatics_disallow, path)
     return False
 
