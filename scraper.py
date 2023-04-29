@@ -26,7 +26,7 @@ def extract_next_links(url, resp):
     # Return a list with the hyperlinks (as strings) scrapped from resp.raw_response.content
 
     num_unique_link = 0 # To count number of unique links
-    url_list = list() #List with hyperlink to return
+    url_set = set() #List with hyperlink to return
 
     if 200 <= resp.status < 300 : #if status code is ok and it is a valid link
         soup = BeautifulSoup(resp.raw_response.content, 'lxml') #parser using beautiful soup
@@ -34,9 +34,9 @@ def extract_next_links(url, resp):
             extracted_url = link.get('href')
             index = extracted_url.rfind('#')
             url_remove_fragment = extracted_url[:index] if index >= 0 else extracted_url #removes the fragment portion of url
-            url_list.append(url_remove_fragment) #adds url to list
+            url_set.add(url_remove_fragment) #adds url to list
 
-    return url_list
+    return list(set(url_set))
     #return list()
 
 def is_valid(url):
