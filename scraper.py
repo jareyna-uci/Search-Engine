@@ -1,6 +1,9 @@
 import re
-from urllib.parse import urlparse
+from urllib.parse import urlparse, urljoin
 from bs4 import BeautifulSoup
+
+class TextSimilarityProcessor
+
 
 class Robots:
     ics_disallow = r"^/bin/.*|^/~mpufal/.*"
@@ -27,15 +30,20 @@ def extract_next_links(url, resp):
     # Return a list with the hyperlinks (as strings) scrapped from resp.raw_response.content
 
     num_unique_link = 0 # To count number of unique links
-    url_set = set() #List with hyperlink to return
+    url_set = set() #set with hyperlink to return
 
     if 200 <= resp.status < 300 : #if status code is ok and it is a valid link
         soup = BeautifulSoup(resp.raw_response.content, 'lxml') #parser using beautiful soup
         for link in soup.find_all('a'):
             extracted_url = link.get('href')
+            if extracted_url is None:  #check if extracted_url is a None object
+                continue
+
             index = extracted_url.rfind('#')
             url_remove_fragment = extracted_url[:index] if index >= 0 else extracted_url #removes the fragment portion of url
-            url_set.add(url_remove_fragment) #adds url to list
+            added_slash =
+            absolute_url = urljoin(url, url_remove_fragment) #converts relative urls to absolute urls
+            url_set.add(absolute_url) #adds url to list
 
     return list(set(url_set))
     #return list()
