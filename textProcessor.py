@@ -16,61 +16,22 @@ class TextProcessor:
         L is the length of next line in file 
         Since we are looping through each each line, to then word in each line, then searching through each word,
         to then add those searches to the token list'''
-    def tokenize(self, fileName: str) -> list[str]:
-        
-        # O(1) all files take the same time to open
-        try:
-            f = open(fileName, "r",encoding='utf-8')
-        except IOError:
-            print("File Format not accepted")
-
+    @staticmethod
+    def tokenize(webpage_text: str) -> list[str]:
         #O(1) since the list will always start as empty
         tokens = list()
 
         # O(1) since regex inits will takes constant time as input increases
         alphaNumeric = r"[0-9a-zA-Z]+"
-
-        # O(L) where L is the length of next line in file
-        line = f.readline()
-
-        ''' O(R*(L+(W*(T+Max(M,N)))) 
-            where R is the number of lines in the file, 
-            W is the number of words in "line", 
-            T is the length of "word", 
-            M is the length of "tokens",
-            L is the length of next line in file 
-            Since we are looping through each each line, to then word in each line, then searching through each word,
-            to then add those searches to the token list'''
-        while line != "":
-
-            ''' O(W*(T+N)) 
-                where W is the number of words in "line", 
-                T is the length of "word", 
-                M is the length of "tokens" and 
-                Since we are looping through each word in each line and searching through each word,
-                to then add those searches to the token list'''
-            for word in line.split():
-
-                # O(T) where T is the length of "word" since it searches throughout the string
-                toks = re.findall(alphaNumeric, word.lower())
-
-                # O(M)) where M is the length of "toks"
-                tokens += toks
-            
-            # O(L) where L is the length of next line in file
-            line = f.readline()
-        
-        # O(1) since closing files is constant
-        f.close()
-
-        # O(1) return is constant
+        tokens = re.findall(alphaNumeric, webpage_text)
         return tokens
     
     ''' O(M*N)
         Where M is the number of tokens and 
         N is the size of "tokenCount" 
         Since we update dict for every token in "tokenCount"'''
-    def computeWordFrequencies(self, tokens: list[str]) -> defaultdict[str, int]:
+    @staticmethod
+    def computeWordFrequencies(tokens: list[str]) -> defaultdict[str, int]:
 
         # O(1) initialization would be constant no matter the size of input
         tokenCount = defaultdict(int)
@@ -88,6 +49,7 @@ class TextProcessor:
         Where N is the number of items in the "tokenMap" Dict
         Since we are sorting the Dicts twice, once by alphabet, then by frequency. 
         We then print out the contents which is just N'''
+    @staticmethod
     def printTokenAndFreq(self, tokenMap: defaultdict[str, int]):
         
         # O(N log N) where N is the number of items in the "tokenMap" Dict
