@@ -50,7 +50,7 @@ class TextProcessor:
         Since we are sorting the Dicts twice, once by alphabet, then by frequency. 
         We then print out the contents which is just N'''
     @staticmethod
-    def printTokenAndFreq(self, tokenMap: defaultdict[str, int]):
+    def printTokenAndFreq(tokenMap: defaultdict[str, int]):
         
         # O(N log N) where N is the number of items in the "tokenMap" Dict
         sortedFreqByTok = dict(sorted(tokenMap.items(), key=lambda x: (x[0])))
@@ -66,6 +66,26 @@ class TextProcessor:
         
         # O(1) return is constant
         return
+    
+    @staticmethod
+    def getNTokenAndFreq(tokenMap: defaultdict[str, int], n: int):
+
+        topNLis = []
+        
+        # Sort the token alphabetically since python sorting is in place
+        sortedFreqByTok = dict(sorted(tokenMap.items(), key=lambda x: (x[0])))
+
+        # Then sort by frequency since python sorting is in place
+        sortedFreq = sorted(sortedFreqByTok.items(), key=lambda x: (x[1]), reverse=True)
+
+        # go through the first top n freq and return them
+        count = 0
+        for pair in sortedFreq:
+            topNLis.append(pair)
+            count += 1
+            if count == n:
+                return topNLis
+        return topNLis
     
     ''' O((R*(2L+(W*(T+M))) + 2(N^2) + A)
         where R is the length of lines in the file,

@@ -128,6 +128,18 @@ class Report:
         "somehow", "someone", "somethan", "something", "sometime", "sometimes", "somewhat", "somewhere", "soon", "sorry", 
         "specifically", "specified", "specify", "specifying", "still", "stop", "strongly", "sub", "substantially", "successfully", 
         "such", "sufficiently", "suggest", "sup", "sure"]
+    
+    def __init__(self) -> None:
+        pass
+
+    def get_unique_pages(self):
+        return self.unique_pages
+    
+    def get_longest_page(self):
+        return self.longest_page
+    
+    def get_fifty_common_words(self):
+        return TextProcessor.getNTokenAndFreq(self.words_freq, 50)
 
 
 def scraper(url, resp):
