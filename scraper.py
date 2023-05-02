@@ -14,7 +14,10 @@ class TextSimilarityProcessor:  #class for hasing (getting the fingerprint) of t
 
     def get_fingerprint(resp):  #gets the 32-bit fingerprint
         text = resp.get_text(strip=True)    #this function only uses the test of the html file to generate the fingerprint
-        text_freq = TP.computeWordFrequencies(TP.tokenize())
+        text_freq = TP.computeWordFrequencies(TP.tokenize(text))
+
+        # TODO: Add to reports word Frequencies / Longest page
+
         vector = [0] * 32
 
         for token, weight in text_freq.items():
@@ -142,9 +145,9 @@ def extract_next_links(url, resp):
                 url_remove_fragment = extracted_url[:index] if index >= 0 else extracted_url #removes the fragment portion of url
             
                 absolute_url = urljoin(url, url_remove_fragment) #converts relative urls to absolute urls
-                # TODO: add absolute url to Report class
                 url_set.add(absolute_url) #adds url to list
 
+    # TODO: add absolute urls to Report class
     return list(set(url_set))
     #return list()
 
