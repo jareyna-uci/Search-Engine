@@ -72,12 +72,14 @@ class Robots:   #The Robots class checks if the url is allowed in their respecti
             return Robots.stat.can_fetch('*', url)
         if re.match(r".*\.informatics\.uci\.edu.*", netloc):
             return Robots.informatics.can_fetch('*', url)
-        
+
+# This class will keep track of data needed for the report
 class Report:
-    unique_pages = 0
-    longest_page = 0
-    words_freq = defaultdict(int)
-    sub_domains = set()
+    longest_page = 0    # holds the longest page length
+    word_freq = defaultdict(int)    # word frequencies seen so far
+    sub_domains = set() # set of sub domains seen so far
+    seen_urls = set()   # set of urls seen
+    N = 0   # top N words frequencies that would be presented
     stop_words = ["a", "able", "about", "above", "abst", "accordance", "according", "accordingly", "across", "act", 
         "actually", "added", "adj", "affected", "affecting", "affects", "after", "afterwards", "again", "against", 
         "ah", "all", "almost", "alone", "along", "already", "also", "although", "always", "am", 
@@ -127,19 +129,34 @@ class Report:
         "significant", "significantly", "similar", "similarly", "since", "six", "slightly", "so", "some", "somebody", 
         "somehow", "someone", "somethan", "something", "sometime", "sometimes", "somewhat", "somewhere", "soon", "sorry", 
         "specifically", "specified", "specify", "specifying", "still", "stop", "strongly", "sub", "substantially", "successfully", 
-        "such", "sufficiently", "suggest", "sup", "sure"]
+        "such", "sufficiently", "suggest", "sup", "sure"]   # stop words
     
-    def __init__(self) -> None:
-        pass
+    def __init__(self, N) -> None:
+        self.N = N  # initilizes the amount of top words frequencies
 
     def get_unique_pages(self):
-        return self.unique_pages
+        return len(self.seen_urls)  # returns amount of unique pages seen
     
     def get_longest_page(self):
-        return self.longest_page
+        return self.longest_page    # returns length of longest page
     
-    def get_fifty_common_words(self):
-        return TextProcessor.getNTokenAndFreq(self.words_freq, 50)
+    def get_N_common_words(self):
+        return TextProcessor.getNTokenAndFreq(self.word_freq, self.N)   # gets the top N words with highest frequency
+    
+    def update_pages(self, url):
+        self.seen_urls.add(url)     # adds a url to the url set of urls weve seen so far
+
+    def update_longest_page(self, l):
+        if l > self.longest_page:
+            self.longest_page = l   # updates longest length page if new page length is bigger
+
+    def update_sub_domains(self, sub):
+        self.sub_domains.add(sub)   # adds sub domain to the set of sub domains we have seen so far
+
+    def update_word_freq(self, wordFreq):
+        for k, v in wordFreq.items():
+            self.word_freq[k] += v  # update word freq of words weve seen so far with new words seen
+
 
 
 def scraper(url, resp):
@@ -172,6 +189,7 @@ def extract_next_links(url, resp):
                 url_remove_fragment = extracted_url[:index] if index >= 0 else extracted_url #removes the fragment portion of url
             
                 absolute_url = urljoin(url, url_remove_fragment) #converts relative urls to absolute urls
+                # TODO: add absolute url to Report class
                 url_set.add(absolute_url) #adds url to list
 
     return list(set(url_set))
