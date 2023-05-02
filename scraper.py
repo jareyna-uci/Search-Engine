@@ -19,7 +19,6 @@ class TextSimilarityProcessor:  #class for hasing (getting the fingerprint) of t
         # TODO: Add to reports word Frequencies / Longest page
 
         vector = [0] * 32
-
         for token, weight in text_freq.items():
             token_bit_hash = bin(int.from_bytes(sha256(token.encode()).digest(), 'big'))[10:42]    #generates a binary string for each token via
                                                                                                    #the sha256 hash function
@@ -148,7 +147,7 @@ def extract_next_links(url, resp):
                 url_set.add(absolute_url) #adds url to list
 
     # TODO: add absolute urls to Report class
-    return list(set(url_set))
+    return list(url_set)
     #return list()
 
 def is_valid(url):
@@ -166,7 +165,7 @@ def is_valid(url):
                 + r"|wav|avi|mov|mpeg|ram|m4v|mkv|ogg|ogv|pdf"
                 + r"|ps|eps|tex|ppt|pptx|doc|docx|xls|xlsx|names"
                 + r"|data|dat|exe|bz2|tar|msi|bin|7z|psd|dmg|iso"
-                + r"|epub|dll|cnf|tgz|sha1|war"
+                + r"|epub|dll|cnf|tgz|sha1|war|txt|json"
                 + r"|thmx|mso|arff|rtf|jar|csv"
                 + r"|rm|smil|wmv|swf|wma|zip|rar|gz)$", parsed.path.lower())
         else:
@@ -179,7 +178,8 @@ def check_domain_robots(url, url_parse):
     # checks if the url is under one of the four domains and is disallowed by their robots.txt
 
     netloc = url_parse.netloc.lower()
-
+    
+    #checks if the hostname is one of the four valid domains. Then checks their robots.txt
     if re.match(r".*\.ics\.uci\.edu.*|.*\.cs\.uci\.edu.*|.*\.stat\.uci\.edu.*|.*\.informatics\.uci\.edu.*", netloc):
         return Robots.check_robots(url, netloc)
     return False
