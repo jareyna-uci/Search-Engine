@@ -2,7 +2,7 @@ import re
 from collections import defaultdict
 
 class TextProcessor:
-    stop_words = ["a", "able", "about", "above", "abst", "accordance", "according", "accordingly", "across", "act", 
+    stop_words = {"a", "able", "about", "above", "abst", "accordance", "according", "accordingly", "across", "act", 
         "actually", "added", "adj", "affected", "affecting", "affects", "after", "afterwards", "again", "against", 
         "ah", "all", "almost", "alone", "along", "already", "also", "although", "always", "am", 
         "among", "amongst", "an", "and", "announce", "another", "any", "anybody", "anyhow", "anymore", 
@@ -51,7 +51,7 @@ class TextProcessor:
         "significant", "significantly", "similar", "similarly", "since", "six", "slightly", "so", "some", "somebody", 
         "somehow", "someone", "somethan", "something", "sometime", "sometimes", "somewhat", "somewhere", "soon", "sorry", 
         "specifically", "specified", "specify", "specifying", "still", "stop", "strongly", "sub", "substantially", "successfully", 
-        "such", "sufficiently", "suggest", "sup", "sure"]
+        "such", "sufficiently", "suggest", "sup", "sure"}
     # O(1) Since it always passes
     def __init__(self) -> None:
         pass
