@@ -5,6 +5,8 @@ from bs4 import BeautifulSoup
 from textProcessor import TextProcessor
 from hashlib import sha256
 from collections import defaultdict
+import requests
+
 
 TP = TextProcessor()
 
@@ -142,7 +144,9 @@ def extract_next_links(url, resp):
     num_unique_link = 0 # To count number of unique links
     url_set = set() #set with hyperlink to return
 
-    if 200 <= resp.status < 300 : #if status code is ok and it is a valid link
+    redirect_response = requests.get(resp.url) #Checks url if it is redirected
+
+    if 200 <= resp.status < 300 or redirect_response.is_redirect: #if status code is ok or is redirect and it is a valid link
         soup = BeautifulSoup(resp.raw_response.content, 'lxml') #parser using beautiful soup
         if TextSimilarityProcessor.check_similar(soup) == False: # checks for text similarity against previously added links
             for link in soup.find_all('a'):
