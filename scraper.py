@@ -146,7 +146,7 @@ def extract_next_links(url, resp):
 
     redirect_response = requests.get(resp.url) #Checks url if it is redirected
 
-    if 200 <= resp.status < 300 or redirect_response.is_redirect: #if status code is ok or is redirect and it is a valid link
+    if 200 <= resp.status < 300 or redirect_response.is_redirect == True: #if status code is ok or is redirect and it is a valid link
         soup = BeautifulSoup(resp.raw_response.content, 'lxml') #parser using beautiful soup
         if TextSimilarityProcessor.check_similar(soup) == False: # checks for text similarity against previously added links
             for link in soup.find_all('a'):
