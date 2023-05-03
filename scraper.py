@@ -96,7 +96,17 @@ class Report:
     
     def get_N_common_words(self):
         return TextProcessor.getNTokenAndFreq(self.word_freq, self.N)   # gets the top N words with highest frequency
-    
+
+
+    def get_sub_domains(self, url):
+        parse_url = urlparse.urlparse(url).hostname.split('.')
+        if len(parse_url) < 2: #checks if there is a subdomain
+            return "" #If no subdomain return empty string NOT SURE IF YOU WANT TO RETURN ANYTHING BUT LEFT IT AS AN OPTION
+        else:
+            return parse_url[:-1].join('.') #returns subdomain only if it is there is one or multiple
+                                    #If there is multiple subdomains return looks like "subdomain1.subdomain2" as of now
+
+
     def update_pages(self, url):
         self.seen_urls.add(url)     # adds a url to the url set of urls weve seen so far
 
