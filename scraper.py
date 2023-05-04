@@ -83,7 +83,7 @@ class Robots:   #The Robots class checks if the url is allowed in their respecti
 class Report:
     longest_page = 0    # holds the longest page length
     word_freq = defaultdict(int)    # word frequencies seen so far
-    sub_domains = set() # set of sub domains seen so far
+    sub_domains = defaultdict(int) # sub domain as key and amount of pages found from sub domain as value
     seen_urls = set()   # set of urls seen
     N = 0   # top N words frequencies that would be presented
     
@@ -100,13 +100,19 @@ class Report:
         return TextProcessor.getNTokenAndFreq(self.word_freq, self.N)   # gets the top N words with highest frequency
 
 
-    def get_sub_domains(self, url):
-        parse_url = urlparse.urlparse(url).hostname.split('.')
-        if len(parse_url) < 2: #checks if there is a subdomain
-            return "" #If no subdomain return empty string NOT SURE IF YOU WANT TO RETURN ANYTHING BUT LEFT IT AS AN OPTION
+    def update_sub_domains(self, url, freq): # takes a  url, along with the amount of pages found in that url and updates acoordingly
+        if "ics.uci.edu" not in url:
+            return False # cannot be sub domain of ics.uci.edu
+        
+        parse_url = urlparse(url).hostname.split('.')
+
+        if len(parse_url) <= 2: #checks if there is a subdomain
+            return False #If no subdomain return False
         else:
-            return parse_url[:-1].join('.') #returns subdomain only if it is there is one or multiple
-                                    #If there is multiple subdomains return looks like "subdomain1.subdomain2" as of now
+            subURL = f"{urlparse(url).scheme}://{urlparse(url).hostname}" # Full subdomain URL
+            self.sub_domains[subURL] = freq
+            return True
+            #print(".".join(parse_url[:-1])) #returns subdomain only if it is there is one or multiple
 
 
     def update_pages(self, url):
@@ -115,9 +121,6 @@ class Report:
     def update_longest_page(self, l):
         if l > self.longest_page:
             self.longest_page = l   # updates longest length page if new page length is bigger
-
-    def update_sub_domains(self, sub):
-        self.sub_domains.add(sub)   # adds sub domain to the set of sub domains we have seen so far
 
     def update_word_freq(self, wordFreq):
         for k, v in wordFreq.items():
