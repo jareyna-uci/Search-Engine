@@ -1,5 +1,5 @@
 import re
-from urllib.parse import urlparse, urljoin
+from urllib.parse import urlparse, urljoin, urldefrag
 import urllib.robotparser as urllib_rp
 from bs4 import BeautifulSoup
 from textProcessor import TextProcessor
@@ -98,6 +98,9 @@ class Report:
     
     def get_N_common_words(self):
         return TextProcessor.getNTokenAndFreq(self.word_freq, self.N)   # gets the top N words with highest frequency
+    
+    def get_seen_URL_len(self): # gets total amount of unique urls seen
+        return len(self.seen_urls)
 
 
     def update_sub_domains(self, url, freq): # takes a  url, along with the amount of pages found in that url and updates acoordingly
@@ -115,8 +118,10 @@ class Report:
             #print(".".join(parse_url[:-1])) #returns subdomain only if it is there is one or multiple
 
 
-    def update_pages(self, url):
-        self.seen_urls.add(url)     # adds a url to the url set of urls weve seen so far
+    def update_pages(self, url): # takes in a url, with or without fragment and adds it to the url set
+        defrag_url, frag = urldefrag(url)
+
+        self.seen_urls.add(defrag_url)     # adds a url without fragment to the url set of urls weve seen so far
 
     def update_longest_page(self, l):
         if l > self.longest_page:
