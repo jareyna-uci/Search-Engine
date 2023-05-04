@@ -81,14 +81,14 @@ class Robots:   #The Robots class checks if the url is allowed in their respecti
 
 # This class will keep track of data needed for the report
 class Report:
-    longest_page = 0    # holds the longest page length
+    longest_page = ("NaN", -1)    # holds the longest page length
     word_freq = defaultdict(int)    # word frequencies seen so far
     sub_domains = defaultdict(int) # sub domain as key and amount of pages found from sub domain as value
     seen_urls = set()   # set of urls seen
-    N = 0   # top N words frequencies that would be presented
+    N = 50   # top N words frequencies that would be presented
     
     def __init__(self, N) -> None:
-        self.N = N  # initilizes the amount of top words frequencies
+        pass
 
     def get_unique_pages(self):
         return len(self.seen_urls)  # returns amount of unique pages seen
@@ -123,13 +123,35 @@ class Report:
 
         self.seen_urls.add(defrag_url)     # adds a url without fragment to the url set of urls weve seen so far
 
-    def update_longest_page(self, l):
+    def update_longest_page(self, l, name):
         if l > self.longest_page:
-            self.longest_page = l   # updates longest length page if new page length is bigger
+            self.longest_page = (name, l)   # updates longest length page if new page length is bigger
 
     def update_word_freq(self, wordFreq):
         for k, v in wordFreq.items():
             self.word_freq[k] += v  # update word freq of words weve seen so far with new words seen
+    
+    def write_data_to_file(self):
+        with open("report.txt", "w") as output:
+            # 1) Unique Pages Found
+            output.write(f"TOTAL AMOUNT OF UNIQUE PAGES FOUND: {len(self.seen_urls)} \n")
+
+            # 2) Longest Page In Terms of Words
+            output.write(f"LONGEST PAGE: URL -> {self.longest_page[0]} / LENGTH -> {self.longest_page[1]}")
+
+            # 3) 50 Most Common Words
+            topNwords = self.get_N_common_words()
+            output.write(f"TOP {self.N} WORDS: ")
+            for pair in topNwords:
+                output.write(f"\tWORD: {pair[0]} / FREQ: {pair[1]}")
+            
+            # 4) Sub domains Found
+            sortedFreqBySD = sorted(self.sub_domains.items(), key=lambda x: (x[0]))
+            output.write(f"\nSUB DOMAINS FOUND: ")
+            for pair in sortedFreqBySD:
+                output.write(f"\t{pair[0]}, {pair[1]}")
+            
+
         
 
 
@@ -172,8 +194,10 @@ def extract_next_links(url, resp):
                 url_set.add(absolute_url) #adds url to list
 
     # TODO: add absolute urls to Report class
+
+    # TODO: write updated report data to file
+
     return list(url_set)
-    #return list()
 
 def is_valid(url):
     # Decide whether to crawl this url or not. 
