@@ -78,7 +78,7 @@ class TextProcessor:
 
         for token in all_tokens:
             if token not in TextProcessor.stop_words:
-                tokens.append(token)
+                tokens.append(token.lower())
         
         return tokens
     
