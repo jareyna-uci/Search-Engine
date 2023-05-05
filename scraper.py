@@ -5,7 +5,7 @@ from bs4 import BeautifulSoup
 from textProcessor import TextProcessor
 from hashlib import sha256
 from collections import defaultdict
-import requests
+#import requests
 
 
 TP = TextProcessor()
@@ -150,8 +150,6 @@ class Report:
                 output.write(f"\t{pair[0]}, {pair[1]}")
             
 
-        
-
 
 
 def scraper(url, resp):
@@ -172,7 +170,7 @@ def extract_next_links(url, resp):
     num_unique_link = 0 # To count number of unique links
     url_set = set() #set with hyperlink to return
 
-    if 200 <= resp.status < 300: #if status code is ok or is redirect and it is a valid link
+    if 200 <= resp.status < 300: #if status code is ok and it is a valid link
         soup = BeautifulSoup(resp.raw_response.content, 'lxml') #parser using beautiful soup
         if TextSimilarityProcessor.check_similar(soup) == False: # checks for text similarity against previously added links
             for link in soup.find_all('a'):
@@ -186,13 +184,13 @@ def extract_next_links(url, resp):
                 absolute_url = urljoin(url, url_remove_fragment) #converts relative urls to absolute urls
                 url_set.add(absolute_url) #adds url to list
 
-    redirect_response = requests.get(resp.url)  # Checks url if it is redirected
-    if redirect_response.is_redirect == True:
-        redirected_url = redirect_response.url  # url to new redirect url
-        if 200 <= redirected_url.status_code < 300: #checks if redirect is safe
-            index = redirected_url.rfind('#')
-            redirect_remove_fragment = redirected_url[:index] if index >= 0 else redirected_url  # removes the fragment portion of url
-            url.set.add(redirect_remove_fragment) #adds redirect to url set
+    redirect_codes = [301,302,303,307,308] #codes that are safe for redirects
+    if resp.status in redirect_codes: #checks for redirects status code
+        redirected_url = resp.raw_response_response.url #redirected url
+        index = redirected_url.rfind('#')
+        redirected_remove_fragment = redirected_url[:index] if index >= 0 else redirected_url #removes fragment portion of url
+        url_set.add(redirected_remove_fragment) #adds redirect url to set
+
 
     # TODO: add absolute urls to Report class
 
