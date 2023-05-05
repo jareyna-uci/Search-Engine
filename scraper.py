@@ -10,22 +10,24 @@ import requests
 
 TP = TextProcessor()
 
-class TextSimilarityProcessor:  #class for hasing (getting the fingerprint) of the webpage text and
-                                #comparing it against the last crawled webpage to detect traps
-    last_url_hash = ""  #This class compares against the last file downloaded
+class TextSimilarityProcessor:  #class for hashing (getting the fingerprint) of the webpage text and
+                                #comparing it against previously crawled webpages to detect similarity and traps.
 
-    def get_fingerprint(resp):  #gets the 32-bit fingerprint
-        text = resp.get_text(strip=True)    #this function only uses the test of the html file to generate the fingerprint
+    previous_webpage_fingerprints = list()  #This class compares the current webpage fingerprint against previous webpage fingerprintss.
+
+    def get_fingerprint(resp):  
+    #gets the 32-bit fingerprint
+        text = resp.get_text(strip=True)    #this function only uses the text of the html file to generate the fingerprint
         text_freq = TP.computeWordFrequencies(TP.tokenize(text))
 
         # TODO: Add to reports word Frequencies / Longest page
 
-        vector = [0] * 32
+        vector = [0] * 64
         for token, weight in text_freq.items():
-            token_bit_hash = bin(int.from_bytes(sha256(token.encode()).digest(), 'big'))[10:42]    #generates a binary string for each token via
-                                                                                                   #the sha256 hash function
+            token_bit_hash = bin(int.from_bytes(sha256(token.encode()).digest(), 'big'))[-64:]    #generates a binary string for each token via
+                                                                                                  #the sha256 hash function
         
-            for i in range(32):     #if bit is 1, add the weight to the vector, otherwise subtract the weight
+            for i in range(64):     #if bit is 1, add the weight to the vector, otherwise subtract the weight
                 if int(token_bit_hash[i]) == 1:
                     vector[i] += weight
                 else:
@@ -38,22 +40,18 @@ class TextSimilarityProcessor:  #class for hasing (getting the fingerprint) of t
             else:
                 fingerprint += '0'
 
-        return fingerprint
+        return fingerprint    
 
     def check_similar(resp):
-        fingerprint = TextSimilarityProcessor.get_fingerprint(resp)
+        fingerprint = int(TextSimilarityProcessor.get_fingerprint(resp), 2)
 
-        if TextSimilarityProcessor.last_url_hash == "":
-            TextSimilarityProcessor.last_url_hash = fingerprint
-            return False
-        else:   #checks if the fingerprint of the given url is similar to the last url's fingerprint
-            similar_count = 0
-            for i in range(32):
-                if int(fingerprint[i]) == int(TextSimilarityProcessor.last_url_hash[i]):
-                    similar_count += 1
-        
-        TextSimilarityProcessor.last_url_hash = fingerprint
-        return (similar_count / 32.0) > 0.9     #set the threshold at 0.9
+        for previous_fingerprint in previous_webpage_fingerprints:      #checks current fingerprint against previous fingerprints
+            similarity = 64 - (fingerprint ^ previous_fingerprint).bit_count()      #similarity counts the number of similar bits
+            if (similarity / 64) > 0.95:        #set the threshold to 0.95
+                return True
+
+        previous_webpage_fingerprints.append(fingerprint)
+        return False
 
 class Robots:   #The Robots class checks if the url is allowed in their respective domain's robot.txt
     ics = urllib_rp.RobotFileParser()   #construct the RobotFileParser() object
