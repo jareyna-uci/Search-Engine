@@ -5,7 +5,9 @@ from bs4 import BeautifulSoup
 from textProcessor import TextProcessor
 from hashlib import sha256
 from collections import defaultdict
+from utils import get_logger
 #import requests
+
 
 
 TP = TextProcessor()
@@ -84,6 +86,8 @@ class Report:
     sub_domains = defaultdict(int) # sub domain as key and amount of pages found from sub domain as value
     seen_urls = set()   # set of urls seen
     N = 50   # top N words frequencies that would be presented
+    logger = get_logger("REPORT")
+    log_count = 1
     
     def __init__(self) -> None:
         pass
@@ -148,7 +152,34 @@ class Report:
             output.write(f"\nSUB DOMAINS FOUND: ")
             for pair in sortedFreqBySD:
                 output.write(f"\n\t{pair[0]}, {pair[1]}")
+    
+    def update_log(self):
+        self.logger.info(f"_________________________________ LOG #{self.log_count} _________________________________")
+
+        # 1) Unique Pages Found
+        self.logger.info(f"TOTAL AMOUNT OF UNIQUE PAGES FOUND: {len(self.seen_urls)}")
+
+        # 2) Longest Page In Terms of Words
+        self.logger.info(f"LONGEST PAGE: URL -> {self.longest_page[0]} / LENGTH -> {self.longest_page[1]}")
+
+        # 3) 50 Most Common Words
+        self.logger.info(f"TOP {self.N} WORDS: ")
+        topNwords = self.get_N_common_words()
+        for pair in topNwords:
+            self.logger.info(f"\tWORD: {pair[0]} / FREQ: {pair[1]}")
+
+        # 4) Sub domains Found
+        sortedFreqBySD = sorted(self.sub_domains.items(), key=lambda x: (x[0]))
+        self.logger.info(f"SUB DOMAINS FOUND: ")
+        for pair in sortedFreqBySD:
+            self.logger.info(f"\t{pair[0]}, {pair[1]}")
+
+        self.logger.info(f"___________________________________________________________________________________")
+        
+        self.log_count += 1
             
+
+        
 
 
 
