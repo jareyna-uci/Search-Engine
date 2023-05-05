@@ -1,0 +1,10 @@
+TOTAL AMOUNT OF UNIQUE PAGES FOUND: 2 
+LONGEST PAGE: URL -> http://jesse.ics.uci.edu / LENGTH -> 101
+TOP 50 WORDS: 
+	WORD: This / FREQ: 2
+	WORD: the / FREQ: 2
+	WORD: second / FREQ: 1
+	WORD: test / FREQ: 1
+SUB DOMAINS FOUND: 
+	http://vision.ics.uci.edu, 10
+	http://www.ics.uci.edu, 5

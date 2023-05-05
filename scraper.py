@@ -85,7 +85,7 @@ class Report:
     seen_urls = set()   # set of urls seen
     N = 50   # top N words frequencies that would be presented
     
-    def __init__(self, N) -> None:
+    def __init__(self) -> None:
         pass
 
     def get_unique_pages(self):
@@ -101,7 +101,7 @@ class Report:
         return len(self.seen_urls)
 
 
-    def update_sub_domains(self, url, freq): # takes a  url, along with the amount of pages found in that url and updates acoordingly
+    def update_sub_domains(self, url, num_of_pages): # takes a  url, along with the amount of pages found in that url and updates acoordingly
         if "ics.uci.edu" not in url:
             return False # cannot be sub domain of ics.uci.edu
         
@@ -111,7 +111,7 @@ class Report:
             return False #If no subdomain return False
         else:
             subURL = f"{urlparse(url).scheme}://{urlparse(url).hostname}" # Full subdomain URL
-            self.sub_domains[subURL] = freq
+            self.sub_domains[subURL] = num_of_pages
             return True
             #print(".".join(parse_url[:-1])) #returns subdomain only if it is there is one or multiple
 
@@ -121,9 +121,9 @@ class Report:
 
         self.seen_urls.add(defrag_url)     # adds a url without fragment to the url set of urls weve seen so far
 
-    def update_longest_page(self, l, name):
-        if l > self.longest_page:
-            self.longest_page = (name, l)   # updates longest length page if new page length is bigger
+    def update_longest_page(self, l, url):
+        if l > self.longest_page[1]:
+            self.longest_page = (url, l)   # updates longest length page if new page length is bigger
 
     def update_word_freq(self, wordFreq):
         for k, v in wordFreq.items():
@@ -139,15 +139,15 @@ class Report:
 
             # 3) 50 Most Common Words
             topNwords = self.get_N_common_words()
-            output.write(f"TOP {self.N} WORDS: ")
+            output.write(f"\nTOP {self.N} WORDS: ")
             for pair in topNwords:
-                output.write(f"\tWORD: {pair[0]} / FREQ: {pair[1]}")
+                output.write(f"\n\tWORD: {pair[0]} / FREQ: {pair[1]}")
             
             # 4) Sub domains Found
             sortedFreqBySD = sorted(self.sub_domains.items(), key=lambda x: (x[0]))
             output.write(f"\nSUB DOMAINS FOUND: ")
             for pair in sortedFreqBySD:
-                output.write(f"\t{pair[0]}, {pair[1]}")
+                output.write(f"\n\t{pair[0]}, {pair[1]}")
             
 
         
