@@ -47,12 +47,12 @@ class TextSimilarityProcessor:  #class for hashing (getting the fingerprint) of 
     def check_similar(resp):
         fingerprint = int(TextSimilarityProcessor.get_fingerprint(resp), 2)
 
-        for previous_fingerprint in previous_webpage_fingerprints:      #checks current fingerprint against previous fingerprints
+        for previous_fingerprint in TextSimilarityProcessor.previous_webpage_fingerprints:      #checks current fingerprint against previous fingerprints
             similarity = 64 - (fingerprint ^ previous_fingerprint).bit_count()      #similarity counts the number of similar bits
             if (similarity / 64) > 0.95:        #set the threshold to 0.95
                 return True
 
-        previous_webpage_fingerprints.append(fingerprint)
+        TextSimilarityProcessor.previous_webpage_fingerprints.append(fingerprint)
         return False
 
 class Robots:   #The Robots class checks if the url is allowed in their respective domain's robot.txt
