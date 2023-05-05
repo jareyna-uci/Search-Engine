@@ -10,8 +10,6 @@ from utils import get_logger
 
 
 
-TP = TextProcessor()
-
 class TextSimilarityProcessor:  #class for hashing (getting the fingerprint) of the webpage text and
                                 #comparing it against previously crawled webpages to detect similarity and traps.
 
@@ -20,9 +18,7 @@ class TextSimilarityProcessor:  #class for hashing (getting the fingerprint) of 
     def get_fingerprint(resp):  
     #gets the 32-bit fingerprint
         text = resp.get_text(strip=True)    #this function only uses the text of the html file to generate the fingerprint
-        text_freq = TP.computeWordFrequencies(TP.tokenize(text))
-
-        # TODO: Add to reports word Frequencies / Longest page
+        text_freq = TextProcessor.computeWordFrequencies(TextProcessor.tokenize(text))
 
         vector = [0] * 64
         for token, weight in text_freq.items():
@@ -111,7 +107,7 @@ class Report:
         
         parse_url = urlparse(url).hostname.split('.')
 
-        if len(parse_url) <= 2: #checks if there is a subdomain
+        if len(parse_url) <= 3: #checks if there is a subdomain
             return False #If no subdomain return False
         else:
             subURL = f"{urlparse(url).scheme}://{urlparse(url).hostname}" # Full subdomain URL
@@ -177,8 +173,8 @@ class Report:
         self.logger.info(f"___________________________________________________________________________________")
         
         self.log_count += 1
-            
-
+        
+RT = Report()
         
 
 
@@ -202,8 +198,24 @@ def extract_next_links(url, resp):
     url_set = set() #set with hyperlink to return
 
     if 200 <= resp.status < 300: #if status code is ok and it is a valid link
+        
+        # Updating Report
+        RT.update_pages(url)
+
         soup = BeautifulSoup(resp.raw_response.content, 'lxml') #parser using beautiful soup
+
+        # Updating Report
+        page_str = soup.get_text() # page text
+        words_in_page = TextProcessor.tokenizeWNoFilterCount(page_str)
+        RT.update_longest_page(words_in_page, url)
+
         if TextSimilarityProcessor.check_similar(soup) == False: # checks for text similarity against previously added links
+
+            # Updating Report
+            word_freq = TextProcessor.computeWordFrequencies(TextProcessor.tokenize(page_str)) # get word freq
+            RT.update_word_freq(word_freq)
+
+            pages_found = 0
             for link in soup.find_all('a'):
                 extracted_url = link.get('href')
                 if extracted_url is None:  #check if extracted_url is a None object
@@ -214,6 +226,12 @@ def extract_next_links(url, resp):
             
                 absolute_url = urljoin(url, url_remove_fragment) #converts relative urls to absolute urls
                 url_set.add(absolute_url) #adds url to list
+                pages_found += 1
+            
+            # Updating Report
+            if "ics.uci.edu" in url: # if is a possible sub domain of ics.udi.edu
+               RT.update_sub_domains(url, pages_found)
+
 
     redirect_codes = [301,302,303,307,308] #codes that are safe for redirects
     if resp.status in redirect_codes: #checks for redirects status code
@@ -222,10 +240,8 @@ def extract_next_links(url, resp):
         redirected_remove_fragment = redirected_url[:index] if index >= 0 else redirected_url #removes fragment portion of url
         url_set.add(redirected_remove_fragment) #adds redirect url to set
 
-
-    # TODO: add absolute urls to Report class
-
-    # TODO: write updated report data to file
+    # Updating Report
+    RT.update_log()
 
     return list(url_set)
 

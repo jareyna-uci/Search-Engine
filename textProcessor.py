@@ -66,19 +66,33 @@ class TextProcessor:
         Since we are looping through each each line, to then word in each line, then searching through each word,
         to then add those searches to the token list'''
     
-    def tokenize(self, webpage_text: str) -> list[str]:
+    @staticmethod
+    def tokenize(webpage_text: str) -> list[str]:
         #O(1) since the list will always start as empty
         tokens = list()
 
         # O(1) since regex inits will takes constant time as input increases
         alphaNumeric = r"[0-9a-zA-Z]+"
-        all_tokens = re.findall(alphaNumeric, webpage_text)
+        filtered_web_text = re.sub(r"\n", "", webpage_text)
+        all_tokens = re.findall(alphaNumeric, filtered_web_text)
 
         for token in all_tokens:
-            if token not in self.stop_words:
+            if token not in TextProcessor.stop_words:
                 tokens.append(token)
         
         return tokens
+    
+    @staticmethod
+    def tokenizeWNoFilterCount(webpage_text: str) -> list[str]:
+        #O(1) since the list will always start as empty
+        tokens = list()
+
+        # O(1) since regex inits will takes constant time as input increases
+        alphaNumeric = r"[0-9a-zA-Z]+"
+        filtered_web_text = re.sub(r"\\n|\\t", "", webpage_text)
+        all_tokens = re.findall(alphaNumeric, filtered_web_text)
+        
+        return len(all_tokens)
     
     ''' O(M*N)
         Where M is the number of tokens and 
