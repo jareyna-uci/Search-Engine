@@ -6,7 +6,6 @@ from textProcessor import TextProcessor
 from hashlib import sha256
 from collections import defaultdict
 from utils import get_logger
-#import requests
 
 
 
