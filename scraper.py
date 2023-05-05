@@ -196,7 +196,7 @@ def extract_next_links(url, resp):
     num_unique_link = 0 # To count number of unique links
     url_set = set() #set with hyperlink to return
 
-    if 200 <= resp.status < 300: #if status code is ok and it is a valid link
+    if 200 <= resp.status < 300 and resp.raw_response is not None: #if status code is ok and it is a valid link
         
         # Updating Report
         RT.update_pages(url)
