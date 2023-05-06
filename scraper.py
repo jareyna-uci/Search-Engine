@@ -101,7 +101,7 @@ class Report:
 
 
     def update_sub_domains(self, url, num_of_pages): # takes a  url, along with the amount of pages found in that url and updates acoordingly
-        if "ics.uci.edu" not in url:
+        if ".ics.uci.edu" not in url:
             return False # cannot be sub domain of ics.uci.edu
         
         parse_url = urlparse(url).hostname.split('.')
@@ -228,7 +228,7 @@ def extract_next_links(url, resp):
                 pages_found += 1
             
             # Updating Report
-            if "ics.uci.edu" in url: # if is a possible sub domain of ics.udi.edu
+            if ".ics.uci.edu" in url: # if is a possible sub domain of ics.udi.edu
                RT.update_sub_domains(url, pages_found)
 
 
