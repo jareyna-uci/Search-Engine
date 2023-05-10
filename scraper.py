@@ -6,6 +6,7 @@ from textProcessor import TextProcessor
 from hashlib import sha256
 from collections import defaultdict
 from utils import get_logger
+from difflib import SequenceMatcher
 
 
 
@@ -49,6 +50,16 @@ class TextSimilarityProcessor:  #class for hashing (getting the fingerprint) of 
 
         TextSimilarityProcessor.previous_webpage_fingerprints.append(fingerprint)
         return False
+    
+    def url_similarity(url1, url2):
+        parsed_url1 = urlparse(url1)    # parse URL 1
+        parsed_url2 = urlparse(url2)    # parse URL 2
+
+        domain_similarity = SequenceMatcher(None, parsed_url1.netloc, parsed_url2.netloc)   # Get the similarity of the domain
+        path_similarity = SequenceMatcher(None, parsed_url1.path, parsed_url2.path)         # Get the similarity of the path
+        query_similarity = SequenceMatcher(None, parsed_url1.query, parsed_url2.query)      # Get the similarity of the query
+
+        return {"domain": domain_similarity.ratio(), "path": path_similarity.ratio(), "query": query_similarity.ratio()}    # Return a Dict of the ratios of the similarities
 
 class Robots:   #The Robots class checks if the url is allowed in their respective domain's robot.txt
     ics = urllib_rp.RobotFileParser()   #construct the RobotFileParser() object
@@ -193,7 +204,6 @@ def extract_next_links(url, resp):
     #         resp.raw_response.content: the content of the page!
     # Return a list with the hyperlinks (as strings) scrapped from resp.raw_response.content
 
-    num_unique_link = 0 # To count number of unique links
     url_set = set() #set with hyperlink to return
 
     if 200 <= resp.status < 300 and resp.raw_response is not None: #if status code is ok and it is a valid link
