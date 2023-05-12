@@ -7,7 +7,7 @@ from hashlib import sha256
 from collections import defaultdict
 from utils import get_logger
 from difflib import SequenceMatcher
-
+import hashlib
 
 
 class TextSimilarityProcessor:  #class for hashing (getting the fingerprint) of the webpage text and
@@ -94,6 +94,7 @@ class Report:
     N = 50   # top N words frequencies that would be presented
     logger = get_logger("REPORT")
     log_count = 1
+    urls_scraped = set()
     
     def __init__(self) -> None:
         pass
@@ -138,11 +139,17 @@ class Report:
     def update_word_freq(self, wordFreq):
         for k, v in wordFreq.items():
             self.word_freq[k] += v  # update word freq of words weve seen so far with new words seen
-    
+        
+    def update_urls_scraped(self, url):
+        defrag_url, frag = urldefrag(url)
+
+        self.urls_scraped.add(defrag_url)
+
     def write_data_to_file(self):
         with open("report.txt", "w") as output:
             # 1) Unique Pages Found
             output.write(f"TOTAL AMOUNT OF UNIQUE PAGES FOUND: {len(self.seen_urls)} \n")
+            output.write(f"TOTAL AMOUNT OF UNIQUE PAGES SCRAPED: {len(self.urls_scraped)} \n")
 
             # 2) Longest Page In Terms of Words
             output.write(f"LONGEST PAGE: URL -> {self.longest_page[0]} / LENGTH -> {self.longest_page[1]}")
@@ -164,6 +171,7 @@ class Report:
 
         # 1) Unique Pages Found
         self.logger.info(f"TOTAL AMOUNT OF UNIQUE PAGES FOUND: {len(self.seen_urls)}")
+        self.logger.info(f"TOTAL AMOUNT OF UNIQUE PAGES SCRAPED: {len(self.urls_scraped)}")
 
         # 2) Longest Page In Terms of Words
         self.logger.info(f"LONGEST PAGE: URL -> {self.longest_page[0]} / LENGTH -> {self.longest_page[1]}")
@@ -180,12 +188,72 @@ class Report:
         for pair in sortedFreqBySD:
             self.logger.info(f"\t{pair[0]}, {pair[1]}")
 
-        self.logger.info(f"___________________________________________________________________________________")
+        self.logger.info(f"_______________________________________ LOG #{self.log_count} __________________________________________")
         
         self.log_count += 1
+class SimHash:
+    fingerprints = set()
+    threshold = .9
+    def __init__(self, threshold=.9):
+        self.threshold = threshold
+    
+    @staticmethod
+    def get_hash(word_freq, n_bits=16):
+        hashdict = {}
+        maxLen = 0
+        for word in word_freq.keys():
+            whash = bin(int(hashlib.sha1(word.encode('utf-8')).hexdigest(), n_bits))[2:]
+            hashdict[word] = whash
+            binLen = len(whash)
+            if binLen > maxLen:
+                maxLen = binLen
+
+        summing_weights = [0] * maxLen
+        for k,v in hashdict.items():
+            i = 0
+            for b in v:
+                if b == '1':
+                    summing_weights[i] += word_freq[k]
+                else:
+                    summing_weights[i] -= word_freq[k]
+                i += 1
+        fin_hash = ''
+        for b in summing_weights:
+            if b >= 0:
+                fin_hash += '1'
+            else:
+                fin_hash += '0'
+        return fin_hash
+
+    @staticmethod
+    def compare_simHash(sh1, sh2):
+        n = min(len(sh1), len(sh2))
+
+        sim = 0
+
+        for i in range(n):
+            if sh1[i] == sh2[i]:
+                sim += 1
+        
+        return sim/n
+    
+    def add_to_fingerprints(self, fp):
+        self.fingerprints.add(fp)
+    
+    def is_similar(self, word_freq):
+        sh = self.get_hash(word_freq)
+        for sh2 in self.fingerprints:
+            if self.compare_simHash(sh, sh2) >= self.threshold:
+                self.fingerprints.add(sh)
+                return True
+        self.fingerprints.add(sh)
+        return False
+    
+    def get_fingerprints(self):
+        return self.fingerprints
         
 RT = Report()
-        
+SH = SimHash(.9)
 
 
 
@@ -218,10 +286,11 @@ def extract_next_links(url, resp):
         words_in_page = TextProcessor.tokenizeWNoFilterCount(page_str)
         RT.update_longest_page(words_in_page, url)
 
-        if TextSimilarityProcessor.check_similar(soup) == False: # checks for text similarity against previously added links
+        word_freq = TextProcessor.computeWordFrequencies(TextProcessor.tokenize(page_str)) # get word freq
+
+        if (TextSimilarityProcessor.check_similar(soup) == False) or SH.is_similar(word_freq): # checks for text similarity against previously added links
 
             # Updating Report
-            word_freq = TextProcessor.computeWordFrequencies(TextProcessor.tokenize(page_str)) # get word freq
             RT.update_word_freq(word_freq)
 
             pages_found = 0
@@ -237,9 +306,9 @@ def extract_next_links(url, resp):
                 url_set.add(absolute_url) #adds url to list
                 pages_found += 1
             
-            # Updating Report
-            if ".ics.uci.edu" in url: # if is a possible sub domain of ics.udi.edu
-               RT.update_sub_domains(url, pages_found)
+        # Updating Report
+        if ".ics.uci.edu" in url: # if is a possible sub domain of ics.udi.edu
+           RT.update_sub_domains(url, pages_found)
 
 
     redirect_codes = [301,302,303,307,308] #codes that are safe for redirects
