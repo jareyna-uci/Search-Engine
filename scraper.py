@@ -306,9 +306,9 @@ def extract_next_links(url, resp):
                 url_set.add(absolute_url) #adds url to list
                 pages_found += 1
             
-        # Updating Report
-        if ".ics.uci.edu" in url: # if is a possible sub domain of ics.udi.edu
-           RT.update_sub_domains(url, pages_found)
+            # Updating Report
+            if ".ics.uci.edu" in url: # if is a possible sub domain of ics.udi.edu
+                RT.update_sub_domains(url, pages_found)
 
 
     redirect_codes = [301,302,303,307,308] #codes that are safe for redirects
